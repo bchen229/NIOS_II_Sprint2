@@ -68,9 +68,16 @@ int RS232TestForReceivedData(void) {
 		return 0;
 }
 
+<<<<<<< Updated upstream
 /**
  * Writes font on the
  */
+=======
+/*
+	Draw Text
+	Tries to center the text in the centre of button
+*/
+>>>>>>> Stashed changes
 void writeCaptionButton(Button * button, int fontColor, int backgroundColor) {
 
 	int xCenter = button->x1 + BUTTON_WIDTH / 2;
@@ -87,6 +94,10 @@ void writeCaptionButton(Button * button, int fontColor, int backgroundColor) {
 
 }
 
+/*
+	Draw Text
+	Tries to center the text in the centre of object
+*/
 void writeCaptionObject(Object * object, int fontColor, int backgroundColor) {
 
 	int xCenter = object->x1 + OBJECT_WIDTH / 2;
@@ -104,6 +115,10 @@ void writeCaptionObject(Object * object, int fontColor, int backgroundColor) {
 
 }
 
+/*
+	Draw Button
+	Uses specifications/definitions from the struct
+*/
 void drawButton(Button *b) {
 	DrawRectangleFill(b->x1, b->x2, b->y1, b->y2, b->outlineColour,
 			b->fillColour);
@@ -111,6 +126,10 @@ void drawButton(Button *b) {
 
 }
 
+/*
+	Draw Object
+	Uses specifications/definitions from the struct
+*/
 void drawObject(Object *o) {
 	DrawRectangleFill(o->x1, o->x2, o->y1, o->y2, o->outlineColour,
 			o->fillColour);
@@ -118,6 +137,9 @@ void drawObject(Object *o) {
 
 }
 
+/*
+	Helper to construct an button (instantiates and defines all fields)
+*/
 void buildButton(int x_centre, int y_centre, int button_width,
 		int button_height, int outlineColour, int fillColour, int fontColor,
 		char *text, Button * b, int numChar, Page * targetPage) {
@@ -134,6 +156,9 @@ void buildButton(int x_centre, int y_centre, int button_width,
 	b->targetPage = targetPage;
 }
 
+/*
+	Helper to construct an object (instantiates and defines all fields)
+*/
 void buildObject(int x_centre, int y_centre, int object_width,
 		int object_height, int outlineColour, int fillColour, int fontColor,
 		char *text, Object * o, int numChar) {
@@ -149,49 +174,66 @@ void buildObject(int x_centre, int y_centre, int object_width,
 	o->captionLength = numChar;
 }
 
+/*
+	Constructs the menu structure and contents
+*/
 Page * buildMenu(void) {
+	
 
+// Build/allocate pages
 	Page *home = malloc(sizeof(Page));
 	Page *destination = malloc(sizeof(Page));
 	Page *self = malloc(sizeof(Page));
 	Page *graphicTest = malloc(sizeof(Page));
 
+// Allocate memory for home screen buttons
 	home->buttons = malloc(sizeof(Button) * 3);
 	home->objects = malloc(sizeof(Object) * 2);
 	home->numButtons = 3;
 	home->numObjects = 2;
 	home->backColour = WHITE;
 
+	// Destination button
 	buildButton(400, 359, BUTTON_WIDTH, BUTTON_HEIGHT, BLACK, LIME_GREEN, BLACK,
 			"Destination", &(home->buttons[0]), strlen("Destination"),
 			destination);
 
+	// "Where am I?" button
 	buildButton(600, 359, BUTTON_WIDTH, BUTTON_HEIGHT, BLACK, GOLD, BLACK,
 			"Where am I?", &(home->buttons[1]), strlen("Where am I?"), self);
 
+	// Graphics button
 	buildButton(200, 359, BUTTON_WIDTH, BUTTON_HEIGHT, BLACK, LIGHT_SKY_BLUE,
 			BLACK, "Graphics Test", &(home->buttons[2]),
 			strlen("Graphics Test"), graphicTest);
 
+	// Title Object
 	buildObject(100, 100, OBJECT_WIDTH, OBJECT_HEIGHT, WHITE, WHITE, BLACK,
 			"SPRINT1 GROUP 3", &(home->objects[0]), strlen("SPRINT1 GROUP 3"));
 
+	// Course Title Object
 	buildObject(700, 100, OBJECT_WIDTH, OBJECT_HEIGHT, WHITE, WHITE, BLACK,
 			"CPEN391", &(home->objects[1]), strlen("CPEN391"));
 
+
+// Definitions for Destination Page
+	// Memory management
 	destination->buttons = malloc(sizeof(Button) * 2);
 	destination->objects = malloc(sizeof(Object) * 8);
 	destination->numButtons = 2;
 	destination->numObjects = 8;
 	destination->backColour = WHITE;
 
+	// Home button
 	buildButton(200, 400, BUTTON_WIDTH, BUTTON_HEIGHT, BLACK, AQUA, BLACK,
 			"Home", &(destination->buttons[0]), strlen("Home"), home);
+	// page jump button
 	buildButton(600, 400, BUTTON_WIDTH, BUTTON_HEIGHT, BLACK, AQUA, BLACK,
 			"Menu Jump", &(destination->buttons[1]), strlen("Menu Jump"), self);
 
 
-
+	// Page contents
+	// Headings
 	buildObject(150, 100, BUTTON_WIDTH, BUTTON_HEIGHT, WHITE, WHITE, BLACK,
 			"Your Destination Is: ", &(destination->objects[0]),
 			strlen("Your Destination Is: "));
@@ -202,7 +244,7 @@ Page * buildMenu(void) {
 			"Phone #: ", &(destination->objects[2]), strlen("Phone #: "));
 	buildObject(150, 250, BUTTON_WIDTH, BUTTON_HEIGHT, WHITE, WHITE, BLACK,
 			"Name: ", &(destination->objects[3]), strlen("Name: "));
-
+	// Text Fields
 	buildObject(450, 100, OBJECT_WIDTH + 100, OBJECT_HEIGHT / 2, BLACK, WHITE,
 			BLACK, "", &(destination->objects[4]),
 			strlen(""));
@@ -215,45 +257,48 @@ Page * buildMenu(void) {
 			BLACK, "", &(destination->objects[7]), strlen(""));
 
 
-
+// Definitions for "Where am I?"
+	// Memory Management
 	self->buttons = malloc(sizeof(Button) * 2);
 	self->objects = malloc(sizeof(Object) * 10);
 	self->numButtons = 2;
 	self->numObjects = 10;
 	self->backColour = WHITE;
+	// Buttons
 	buildButton(200, 400, BUTTON_WIDTH, BUTTON_HEIGHT, BLACK, AQUA, BLACK,
 			"Home", &(self->buttons[0]), strlen("Home"), home);
 	buildButton(600, 400, BUTTON_WIDTH, BUTTON_HEIGHT, BLACK, AQUA, BLACK,
 			"Menu Jump", &(self->buttons[1]), strlen("Menu Jump"), destination);
-
+	// Info fields
+	// Name
 	buildObject(150, 50, OBJECT_WIDTH, OBJECT_HEIGHT, WHITE, WHITE, BLACK,
 			"Your Name Is: ", &(self->objects[0]), strlen("Your Name Is: "));
 	buildObject(450, 50, OBJECT_WIDTH + 100, OBJECT_HEIGHT / 2, BLACK, WHITE,
 				BLACK, "", &(self->objects[1]), strlen(""));
-
+	// Address
 	buildObject(150, 100, OBJECT_WIDTH, OBJECT_HEIGHT, WHITE, WHITE, BLACK,
 			"Home Address: ", &(self->objects[2]), strlen("Home Address: "));
 	buildObject(450, 100, OBJECT_WIDTH + 100, OBJECT_HEIGHT / 2, BLACK, WHITE,
 				BLACK, "", &(self->objects[3]), strlen(""));
-
+	// Phone
 	buildObject(150, 150, OBJECT_WIDTH, OBJECT_HEIGHT, WHITE, WHITE, BLACK,
 			"Phone #: ", &(self->objects[4]), strlen("Phone #: "));
 	buildObject(450, 150, OBJECT_WIDTH + 100, OBJECT_HEIGHT / 2, BLACK, WHITE,
 				BLACK, "", &(self->objects[5]), strlen(""));
-
+	// Emergency Contact
 	buildObject(150, 200, OBJECT_WIDTH, OBJECT_HEIGHT, WHITE, WHITE, BLACK,
 			"Emergency #: ", &(self->objects[6]), strlen("Emergency #: "));
 	buildObject(450, 200, OBJECT_WIDTH + 100, OBJECT_HEIGHT / 2, BLACK, WHITE,
 				BLACK, "", &(self->objects[7]), strlen(""));
-
+	// Current Location
 	buildObject(150, 250, OBJECT_WIDTH, OBJECT_HEIGHT, WHITE, WHITE, BLACK,
 			"Your Location Is: ", &(self->objects[8]),
 			strlen("Your Location Is: "));
 	buildObject(450, 250, OBJECT_WIDTH + 100, OBJECT_HEIGHT / 2, BLACK, WHITE,
 			BLACK, "", &(self->objects[9]), strlen(""));
 
+// Graphics test screen
 	graphicTest->buttons = malloc(sizeof(Button) * 1);
-
 	graphicTest->numButtons = 1;
 	graphicTest->numObjects = 0;
 	graphicTest->backColour = WHITE;
@@ -265,9 +310,14 @@ Page * buildMenu(void) {
 }
 
 //void writeCaptionButton(Button button, int fontColor, int backgroundColor) {
-
+/*
+	Draws Page
+	Uses specifications/definitions from the struct
+		Buttons 
+		Objects
+*/
 void drawPage(Page * currentScreen) {
-
+	// Fill background
 	int j;
 	for (j = 0; j < 481; j++) {
 
@@ -276,6 +326,7 @@ void drawPage(Page * currentScreen) {
 	}
 	usleep(50);
 
+	// Iterate through buttons
 	int i = 0;
 	for (i = 0; i < currentScreen->numButtons; i++) {
 
@@ -286,6 +337,7 @@ void drawPage(Page * currentScreen) {
 
 	}
 
+	// Iterate through objects
 	for (i = 0; i < currentScreen->numObjects; i++) {
 
 		drawObject(&(currentScreen->objects[i]));
