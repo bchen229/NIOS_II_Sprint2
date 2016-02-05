@@ -30,8 +30,10 @@ void Init_RS232(void) {
 
 }
 
-/* poll Tx bit in 6850 status register. Wait for it to become '1'
- *write 'c' to the 6850 TxData register to output the character*/
+/*
+ * poll Tx bit in 6850 status register. Wait for it to become '1'
+ * write 'c' to the 6850 TxData register to output the character
+ */
 int putcharRS232(int c) {
 
 	while ((RS232_Status & 0x02) != 0x02)
@@ -40,8 +42,10 @@ int putcharRS232(int c) {
 	return RS232_TxData; // return c
 }
 
-/* poll Rx bit in 6850 status register. Wait for it to become '1'
- *read received character from 6850 RxData register.*/
+/*
+ * poll Rx bit in 6850 status register. Wait for it to become '1'
+ * read received character from 6850 RxData register.read read
+ */
 int getcharRS232(void) {
 	int rx;
 
@@ -64,6 +68,9 @@ int RS232TestForReceivedData(void) {
 		return 0;
 }
 
+/**
+ * Writes font on the
+ */
 void writeCaptionButton(Button * button, int fontColor, int backgroundColor) {
 
 	int xCenter = button->x1 + BUTTON_WIDTH / 2;
@@ -71,8 +78,8 @@ void writeCaptionButton(Button * button, int fontColor, int backgroundColor) {
 	int x_start = xCenter - (button->captionLength * 10 / 2);
 	int len = button->captionLength;
 	int i;
-	for (i = 0; i < len; i++) {
 
+	for (i = 0; i < len; i++) {
 		OutGraphicsCharFont2a(x_start + i * 10, yCenter, fontColor,
 				backgroundColor, button->buttonText[i], 0);
 
@@ -87,8 +94,6 @@ void writeCaptionObject(Object * object, int fontColor, int backgroundColor) {
 	int x_start = xCenter - (object->captionLength * 10 / 2);
 	int len = object->captionLength;
 	int i;
-	//printf("%d\n", xCenter);
-	//printf("%d\n", yCenter);
 
 	for (i = 0; i < len; i++) {
 
@@ -100,19 +105,15 @@ void writeCaptionObject(Object * object, int fontColor, int backgroundColor) {
 }
 
 void drawButton(Button *b) {
-
 	DrawRectangleFill(b->x1, b->x2, b->y1, b->y2, b->outlineColour,
 			b->fillColour);
-
 	//DRAW CAPTION
 
 }
 
 void drawObject(Object *o) {
-
 	DrawRectangleFill(o->x1, o->x2, o->y1, o->y2, o->outlineColour,
 			o->fillColour);
-
 	//DRAW CAPTION
 
 }
@@ -131,7 +132,6 @@ void buildButton(int x_centre, int y_centre, int button_width,
 	b->fontColour = fontColor;
 	b->captionLength = numChar;
 	b->targetPage = targetPage;
-
 }
 
 void buildObject(int x_centre, int y_centre, int object_width,
@@ -147,7 +147,6 @@ void buildObject(int x_centre, int y_centre, int object_width,
 	o->fillColour = fillColour;
 	o->fontColour = fontColor;
 	o->captionLength = numChar;
-
 }
 
 Page * buildMenu(void) {
@@ -298,6 +297,9 @@ void drawPage(Page * currentScreen) {
 
 }
 
+/**
+ * Updates the time and draws it onto the screen.
+ */
 updateTime() {
 	Object * timeObject;
 	int sw_values = 0;
@@ -323,14 +325,15 @@ updateTime() {
 		char timeBuff[10];
 		char concatTime[30];
 		char i;
-		printTime(6, 8, 10, buff, secondBuff, minuteBuff, timeBuff);
 
+		// grab the time values concatenate them
+		printTime(6, 8, 10, buff, secondBuff, minuteBuff, timeBuff);
 		strcpy(concatTime, timeBuff);
 		strcat(concatTime, minuteBuff);
 		strcat(concatTime, secondBuff);
-
 		printf("%s\n", concatTime);
 
+		// draw the time onto the screen
 		buildObject(500, 100, BUTTON_WIDTH, BUTTON_HEIGHT, WHITE, WHITE, BLACK,
 				concatTime, timeObject, strlen(concatTime));
 		drawObject(timeObject);
@@ -352,6 +355,7 @@ int main(void) {
 	Point *touch = malloc(sizeof(Point));
 	Point *release = malloc(sizeof(Point));
 
+	// initialize GPS
 	Init_GPS();
 	StopLogging();
 	usleep(500);
@@ -360,11 +364,11 @@ int main(void) {
 	StartLogger();
 	usleep(500);
 
+	// initialize touch screen
 	Init_Touch();
 	int col = 0;
 
 	while (1) {
-
 
 		printf("x = %d ", release->x);
 		printf("y = %d\n", release->y);
@@ -372,11 +376,11 @@ int main(void) {
 		int rect;
 		int tri;
 		int circ;
+
+		// if we are in the graphics menu, draw the shapes
 		if (strlen("Graphics")
 				== strlen((currentPage->buttons[0]).buttonText)) {
-
 			for (test = 0; test < 1; test++) {
-
 				for (col = 0; col < 2000; col++) {
 
 					int a = rand() % 799;
@@ -385,8 +389,6 @@ int main(void) {
 					int d = rand() % 479;
 
 					Line(a, c, b, d, col%150);
-					//printf("%d\n", col%150);
-
 				}
 
 				for (circ = 0; circ < 150; circ++) {
@@ -408,19 +410,18 @@ int main(void) {
 			}
 		}
 
-		GetPress(touch);
-		GetRelease(release);
+		if(ScreenTouched()){
+			GetPress(touch);
+			GetRelease(release);
+		}
 
 		for (j = 0; j < currentPage->numButtons; j++) {
 
 			Button bttn = currentPage->buttons[j];
 			if ((release->x >= bttn.x1) && (release->x <= bttn.x2)) {
-
 				if ((release->y >= bttn.y1) && (release->y <= bttn.y2)) {
-
 					currentPage = bttn.targetPage;
 					drawPage(currentPage);
-
 				}
 			}
 

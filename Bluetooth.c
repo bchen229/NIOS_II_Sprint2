@@ -14,8 +14,7 @@ char getcharBluetooth(void) {
 	int rx;
 	// poll Rx bit in 6850 status register. Wait for it to become '1'
 	// read received character from 6850 RxData register.
-	while ((Bluetooth_Status & 0x01) != 0x01)
-		;
+	while ((Bluetooth_Status & 0x01) != 0x01);
 
 	rx = Bluetooth_RxData;
 	printf("THIS IS WHAT WE RECIEVE : %c\n", rx);

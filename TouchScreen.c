@@ -65,8 +65,6 @@ void GetPress(Point *p1)
 	 // compute screen coordinates
 	 p1->x = p1->x * 799/4095;
 	 p1->y = (p1->y - yOffset) * 479/(4095 - yOffset);
-//	 printf("x = %d ", p1->x);
-//	 printf("y = %d\n", p1->y);
 }
 
 /*****************************************************************************
@@ -90,8 +88,6 @@ void GetRelease(Point *p1)
 	 // compute screen coordinates
 	 p1->x = p1->x * 799/4095;
 	 p1->y = (p1->y - yOffset) * 479/(4095 - yOffset);
-//	 printf("x = %d ", p1->x);
-//	 printf("y = %d\n", p1->y);
 }
 
 int putcharTouch(int c)
