@@ -23,6 +23,47 @@
 #define OBJECT_HEIGHT 50
 #define TEXT_SIZE 6
 
+void Init_RS232(void) {
+
+	RS232_Baud = 0x01; //Program Baud rate for 115K
+	RS232_Control = 0x15; // x16 clock , 8 data , no parity , 1 stop , no interrupt
+
+}
+
+/* poll Tx bit in 6850 status register. Wait for it to become '1'
+ *write 'c' to the 6850 TxData register to output the character*/
+int putcharRS232(int c) {
+
+	while ((RS232_Status & 0x02) != 0x02)
+		;
+	RS232_TxData = c & 0xFF;
+	return RS232_TxData; // return c
+}
+
+/* poll Rx bit in 6850 status register. Wait for it to become '1'
+ *read received character from 6850 RxData register.*/
+int getcharRS232(void) {
+	int rx;
+
+	while ((RS232_Status & 0x01) != 0x01)
+		;
+
+	rx = RS232_RxData;
+
+	return rx;
+}
+
+// the following function polls the 6850 to determine if any character
+// has been received. It doesn't wait for one, or read it, it simply tests
+// to see if one is available to read
+int RS232TestForReceivedData(void) {
+
+	if (RS232_RxData && 0x01 == 0x01) {
+		return 1;
+	} else
+		return 0;
+}
+
 void writeCaptionButton(Button * button, int fontColor, int backgroundColor) {
 
 	int xCenter = button->x1 + BUTTON_WIDTH / 2;
@@ -133,21 +174,24 @@ Page * buildMenu(void) {
 			BLACK, "Graphics Test", &(home->buttons[2]),
 			strlen("Graphics Test"), graphicTest);
 
-	buildObject(100, 100, OBJECT_WIDTH, OBJECT_HEIGHT, BLACK, TEAL, BLACK,
-			"TEAM AWESOME", &(home->objects[0]), strlen("TEAM AWESOME"));
+	buildObject(100, 100, OBJECT_WIDTH, OBJECT_HEIGHT, WHITE, WHITE, BLACK,
+			"SPRINT1 GROUP 3", &(home->objects[0]), strlen("SPRINT1 GROUP 3"));
 
-	buildObject(700, 100, OBJECT_WIDTH, OBJECT_HEIGHT, BLACK, MAGENTA, BLACK,
+	buildObject(700, 100, OBJECT_WIDTH, OBJECT_HEIGHT, WHITE, WHITE, BLACK,
 			"CPEN391", &(home->objects[1]), strlen("CPEN391"));
 
 	destination->buttons = malloc(sizeof(Button) * 2);
-	destination->objects = malloc(sizeof(Object) * 4);
+	destination->objects = malloc(sizeof(Object) * 8);
 	destination->numButtons = 2;
-	destination->numObjects = 4;
+	destination->numObjects = 8;
 	destination->backColour = WHITE;
+
 	buildButton(200, 400, BUTTON_WIDTH, BUTTON_HEIGHT, BLACK, AQUA, BLACK,
 			"Home", &(destination->buttons[0]), strlen("Home"), home);
 	buildButton(600, 400, BUTTON_WIDTH, BUTTON_HEIGHT, BLACK, AQUA, BLACK,
-			"Back", &(destination->buttons[1]), strlen("Back"), self);
+			"Menu Jump", &(destination->buttons[1]), strlen("Menu Jump"), self);
+
+
 
 	buildObject(150, 100, BUTTON_WIDTH, BUTTON_HEIGHT, WHITE, WHITE, BLACK,
 			"Your Destination Is: ", &(destination->objects[0]),
@@ -160,36 +204,61 @@ Page * buildMenu(void) {
 	buildObject(150, 250, BUTTON_WIDTH, BUTTON_HEIGHT, WHITE, WHITE, BLACK,
 			"Name: ", &(destination->objects[3]), strlen("Name: "));
 
+	buildObject(450, 100, OBJECT_WIDTH + 100, OBJECT_HEIGHT / 2, BLACK, WHITE,
+			BLACK, "", &(destination->objects[4]),
+			strlen(""));
+	buildObject(450, 150, OBJECT_WIDTH + 100, OBJECT_HEIGHT / 2, BLACK, WHITE,
+			BLACK, "", &(destination->objects[5]),
+			strlen(""));
+	buildObject(450, 200, OBJECT_WIDTH + 100, OBJECT_HEIGHT / 2, BLACK, WHITE,
+			BLACK, "", &(destination->objects[6]), strlen(""));
+	buildObject(450, 250, OBJECT_WIDTH + 100, OBJECT_HEIGHT / 2, BLACK, WHITE,
+			BLACK, "", &(destination->objects[7]), strlen(""));
+
+
+
 	self->buttons = malloc(sizeof(Button) * 2);
-	self->objects = malloc(sizeof(Object) * 6);
+	self->objects = malloc(sizeof(Object) * 10);
 	self->numButtons = 2;
-	self->numObjects = 6;
+	self->numObjects = 10;
 	self->backColour = WHITE;
 	buildButton(200, 400, BUTTON_WIDTH, BUTTON_HEIGHT, BLACK, AQUA, BLACK,
 			"Home", &(self->buttons[0]), strlen("Home"), home);
 	buildButton(600, 400, BUTTON_WIDTH, BUTTON_HEIGHT, BLACK, AQUA, BLACK,
-			"Back", &(self->buttons[1]), strlen("Back"), destination);
+			"Menu Jump", &(self->buttons[1]), strlen("Menu Jump"), destination);
 
 	buildObject(150, 50, OBJECT_WIDTH, OBJECT_HEIGHT, WHITE, WHITE, BLACK,
 			"Your Name Is: ", &(self->objects[0]), strlen("Your Name Is: "));
+	buildObject(450, 50, OBJECT_WIDTH + 100, OBJECT_HEIGHT / 2, BLACK, WHITE,
+				BLACK, "", &(self->objects[1]), strlen(""));
+
 	buildObject(150, 100, OBJECT_WIDTH, OBJECT_HEIGHT, WHITE, WHITE, BLACK,
-			"Home Address: ", &(self->objects[1]), strlen("Home Address: "));
+			"Home Address: ", &(self->objects[2]), strlen("Home Address: "));
+	buildObject(450, 100, OBJECT_WIDTH + 100, OBJECT_HEIGHT / 2, BLACK, WHITE,
+				BLACK, "", &(self->objects[3]), strlen(""));
+
 	buildObject(150, 150, OBJECT_WIDTH, OBJECT_HEIGHT, WHITE, WHITE, BLACK,
-			"Phone #: ", &(self->objects[2]), strlen("Phone #: "));
+			"Phone #: ", &(self->objects[4]), strlen("Phone #: "));
+	buildObject(450, 150, OBJECT_WIDTH + 100, OBJECT_HEIGHT / 2, BLACK, WHITE,
+				BLACK, "", &(self->objects[5]), strlen(""));
+
 	buildObject(150, 200, OBJECT_WIDTH, OBJECT_HEIGHT, WHITE, WHITE, BLACK,
-			"Emergency #: ", &(self->objects[3]), strlen("Emergency #: "));
+			"Emergency #: ", &(self->objects[6]), strlen("Emergency #: "));
+	buildObject(450, 200, OBJECT_WIDTH + 100, OBJECT_HEIGHT / 2, BLACK, WHITE,
+				BLACK, "", &(self->objects[7]), strlen(""));
+
 	buildObject(150, 250, OBJECT_WIDTH, OBJECT_HEIGHT, WHITE, WHITE, BLACK,
-			"Your Location Is: ", &(self->objects[4]),
+			"Your Location Is: ", &(self->objects[8]),
 			strlen("Your Location Is: "));
-	buildObject(500, 250, OBJECT_WIDTH + 100, OBJECT_HEIGHT / 2, BLACK, WHITE,
-			BLACK, "", &(self->objects[5]), strlen(""));
+	buildObject(450, 250, OBJECT_WIDTH + 100, OBJECT_HEIGHT / 2, BLACK, WHITE,
+			BLACK, "", &(self->objects[9]), strlen(""));
 
 	graphicTest->buttons = malloc(sizeof(Button) * 1);
 
 	graphicTest->numButtons = 1;
 	graphicTest->numObjects = 0;
 	graphicTest->backColour = WHITE;
-	buildButton(400, 240, 100, 100, WHITE, WHITE, WHITE, "Graphics",
+	buildButton(400, 240, 400, 400, WHITE, WHITE, WHITE, "Graphics",
 			&(graphicTest->buttons[0]), strlen("Graphics"), home);
 
 	return home;
@@ -270,7 +339,7 @@ updateTime() {
 }
 
 /*******************************************************************************
- ** Main Function
+ ** Draw Rectangles
  *******************************************************************************/
 
 int main(void) {
@@ -296,8 +365,7 @@ int main(void) {
 
 	while (1) {
 
-		GetPress(touch);
-		GetRelease(release);
+
 		printf("x = %d ", release->x);
 		printf("y = %d\n", release->y);
 		int test;
@@ -309,15 +377,15 @@ int main(void) {
 
 			for (test = 0; test < 1; test++) {
 
-				for (col = 0; col < 150; col++) {
+				for (col = 0; col < 2000; col++) {
 
 					int a = rand() % 799;
 					int b = rand() % 799;
 					int c = rand() % 479;
 					int d = rand() % 479;
 
-					Line(a, c, b, d, col);
-					printf("%d\n", col);
+					Line(a, c, b, d, col%150);
+					//printf("%d\n", col%150);
 
 				}
 
@@ -339,6 +407,9 @@ int main(void) {
 
 			}
 		}
+
+		GetPress(touch);
+		GetRelease(release);
 
 		for (j = 0; j < currentPage->numButtons; j++) {
 
