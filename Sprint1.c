@@ -68,11 +68,6 @@ int RS232TestForReceivedData(void) {
 		return 0;
 }
 
-<<<<<<< Updated upstream
-/**
- * Writes font on the
- */
-=======
 /*
 	Draw Text
 	Tries to center the text in the centre of button
