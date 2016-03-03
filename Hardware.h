@@ -44,14 +44,14 @@
 // while the course file ColourPaletteData.c contains the 24 bit RGB data
 // that is pre-programmed into the palette
 
-#define	BLACK			0
-#define	WHITE			1
-#define	RED				2
-#define	LIME			3
-#define	BLUE			4
-#define	YELLOW			5
-#define	CYAN			6
-#define	MAGENTA			7
+//#define	BLACK			0
+//#define	WHITE			1
+//#define	RED				2
+//#define	LIME			3
+//#define	BLUE			4
+//#define	YELLOW			5
+//#define	CYAN			6
+//#define	MAGENTA			7
 
 /**
  * GPS hardware defines

@@ -10,290 +10,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
+#include <math.h>
 #include "altera_up_avalon_character_lcd.h"
-#include "ColourPallette.h"
-#include "Colours.h"
-#include <stdio.h>
 #include "Structures.h"
 #include "Hardware.h"
-#include <math.h>
-
-/*
- *
- * Name: WriteCaptionButton
- * Description: This function writes a caption to the centre of button stuct
- * Parameters: Button , font color , backgroundcolor
- *
- */
-void writeCaptionButton(Button * button, int fontColor, int backgroundColor) {
-
-	int xCenter = button->x1 + (button->x2 - button->x1) / 2;
-	int yCenter = button->y1 + (button->y2 - button->y1) / 2 - 4;
-	int x_start = xCenter - (button->captionLength * 10 / 2);
-	int len = button->captionLength;
-	int i;
-
-	for (i = 0; i < len; i++) {
-		OutGraphicsCharFont2a(x_start + i * 10, yCenter, fontColor,
-				backgroundColor, button->buttonText[i], 0);
-
-	}
-}
-
-/*
- *
- * Name: WriteCaptionObject
- * Description: This function writes a text to the centre of the Object stuct
- * Parameters: Object , font colour , backgroundcolor
- *
- */
-void writeCaptionObject(Object * object, int fontColor, int backgroundColor) {
-
-	int xCenter = object->x1 + (object->x2 - object->x1) / 2 - 8;
-	int yCenter = object->y1 + (object->y2 - object->y1) / 2 - 4;
-	int x_start = xCenter - (object->captionLength * 10 / 2);
-	int len = object->captionLength;
-	int i;
-
-	for (i = 0; i < len; i++) {
-
-		OutGraphicsCharFont2a(x_start + i * 11, yCenter, fontColor,
-				backgroundColor, object->objectText[i], 0);
-
-	}
-
-}
-/*
- *
- * Name: WriteCaptionObjectLarge
- * Description: This function writes a text to the centre of the Larger Objects stuct
- * Parameters: Object , font colour , backgroundcolor
- *
- */
-void writeCaptionObjectLarge(Object * object, int fontColor,
-		int backgroundColor) {
-
-	int xCenter = object->x1 + (object->x2 - object->x1) / 2 - 4;
-	int yCenter = object->y1 + (object->y2 - object->y1) / 2 - 4;
-	int x_start = xCenter - (object->captionLength * 10 / 2);
-	int len = object->captionLength;
-	int i;
-
-	for (i = 0; i < len; i++) {
-
-		OutGraphicsCharFont2a(object->x1 + 5 + i * 11, yCenter, fontColor,
-				backgroundColor, object->objectText[i], 0);
-	}
-
-}
-
-/*
- *
- * Name: drawButton
- * Description: This function draws the rectangular box as a button, using the DrawRectangleFill function implemented
- * Parameters: Button
- *
- */
-void drawButton(Button *b) {
-	DrawRectangleFill(b->x1, b->x2, b->y1, b->y2, b->outlineColour,
-			b->fillColour);
-
-}
-/*
- *
- * Name: WriteCaptionKey
- * Description: This function writes a text to the centre of the key stuct
- * Parameters: key , font colour , backgroundcolor
- *
- */
-void writeCaptionKey(Key * k, int fontColor, int backgroundColor) {
-
-	int xCenter = k->x1 + (k->x2 - k->x1) / 2 - 4;
-	int yCenter = k->y1 + (k->y2 - k->y1) / 2 - 4;
-	int x_start = xCenter - (k->len * 10 / 2);
-	int len = k->len;
-	int i = 0;
-
-	if (len == 1) {
-
-		OutGraphicsCharFont2a(xCenter - 2, yCenter, fontColor, backgroundColor,
-				k->alpha, 0);
-		return;
-	}
-
-	for (i = 0; i < len; i++) {
-
-		OutGraphicsCharFont2a(x_start + i * 11, yCenter, fontColor,
-				backgroundColor, k->alpha[i], 0);
-	}
-
-}
-
-/*
- *
- * Name: drawObject
- * Description: This function draws the rectangular box as a object, using the DrawRectangleFill function implemented
- * Parameters: Object
- *
- */
-void drawObject(Object *o) {
-	DrawRectangleFill(o->x1, o->x2, o->y1, o->y2, o->outlineColour,
-			o->fillColour);
-}
-/*
- *
- * Name: drawKey
- * Description: This function draws the rectangular box as a key, using the DrawRectangleFill function implemented
- * Parameters: Key
- *
- */
-void drawKey(Key *k) {
-
-	DrawRectangleFill(k->x1, k->x2, k->y1, k->y2, k->keyOutlineColour,
-			k->keyFillColour);
-	writeCaptionKey(k, k->fontColour, k->keyFillColour);
-
-}
-
-/*
- *
- * Name: drawPage
- * Description: This function draws a page based on the number of boxes,object and buttons of the page
- * Parameters: Page
- *
- */
-void drawPage(Page * currentScreen) {
-	// Fill background
-	int j;
-	for (j = 0; j < 481; j++) {
-		HLine(0, j, 801, currentScreen->backColour);
-	}
-
-	// Iterate through Boxes
-	int i = 0;
-
-	for (i = 0; i < currentScreen->numInputBoxes; i++) {
-		drawInputBox(&(currentScreen->inputBoxes[i]));
-		updateInputBox(&(currentScreen->inputBoxes[i]), BLACK, LIGHT_SKY_BLUE);
-	}
-	// Iterate through buttons
-	for (i = 0; i < currentScreen->numButtons; i++) {
-		drawButton(&(currentScreen->buttons[i]));
-		writeCaptionButton(&(currentScreen->buttons[i]), BLACK, LIGHT_SKY_BLUE);
-	}
-	// Iterate through numSDBoxes
-	for (i = 0; i < currentScreen->numSDBoxes; i++) {
-		drawButton(&(currentScreen->sdBoxes[i]));
-		writeCaptionSDBox(&(currentScreen->sdBoxes[i]), BLACK, LIGHT_SKY_BLUE);
-	}
-
-	// Iterate through objects
-	for (i = 0; i < currentScreen->numObjects; i++) {
-
-		drawObject(&(currentScreen->objects[i]));
-		if (currentScreen->hasKeyboard == 1) {
-
-			writeCaptionObjectLarge(&(currentScreen->objects[i]), BLACK, PINK);
-		} else {
-			writeCaptionObject(&(currentScreen->objects[i]), BLACK, PINK);
-		}
-	}
-
-	if (currentScreen->hasKeyboard == 1) {
-		drawKeyboard(currentScreen);
-	}
-
-}
-/*
- *
- * Name: updateBuffer
- * Description: This functions updates the buffer corresponding to the keyboard input
- * Parameters: key ,a Page
- *
- */
-void updateBuffer(Key k, Page *currentScreen) {
-
-	char input = k.writeChar;
-	char *buffer = currentScreen->keyboard.buffer;
-
-	Object *inputBox = &(currentScreen->objects[0]);
-	currentScreen->keyboard.bufCount++;
-	//Check if the buffer is empty
-	if (currentScreen->keyboard.bufCount == 1) {
-		strcpy(buffer, "\0");
-		strncat(buffer, &input, 1);
-	} else {
-		strncat(buffer, &input, 1);
-	}
-	//Check the buffer and draws the buffer to the box
-	//Maximum input characters is 55
-	if (currentScreen->keyboard.bufCount < 55) {
-
-		buildObject(400, 200, BUTTON_WIDTH * 4, BUTTON_HEIGHT * 2, BLACK, WHITE,
-				BLACK, buffer, inputBox, strlen(buffer));
-		drawObject(inputBox);
-		writeCaptionObjectLarge(inputBox, BLACK, WHITE);
-
-	}
-}
-/*
- *
- * Name: decrementBuffer
- * Description: This functions updates the buffer upon deletion of characters
- * Parameters: Page
- *
- */
-void decrementBuffer(Page *currentScreen) {
-
-	int len = strlen(currentScreen->keyboard.buffer);
-
-	if (len > 0) {
-
-		currentScreen->keyboard.buffer[len - 1] = '\0';
-		currentScreen->keyboard.bufCount--;
-
-	}
-}
-/*
- *
- * Name: clearBuffer
- * Description: This functions empties the buffer
- * Parameters: Page
- *
- */
-void clearBuffer(Page *currentScreen) {
-
-	memset(currentScreen->keyboard.buffer, 0,
-			sizeof(currentScreen->keyboard.buffer));
-
-}
-/*
- *
- * Name: drawKeyboard
- * Description: This function draws the keyboard on the page being passed
- * Parameters: Page
- *
- */
-void drawKeyboard(Page * currentScreen) {
-	int i;
-	int n;
-	Key * k = currentScreen->keyboard.currentKeyset;
-
-	n = sizeof(k) / sizeof(k[0]);
-
-	if (currentScreen->keyboard.isNum == 1) {
-
-		for (i = 0; i < NUM_SIZE; i++) {
-			drawKey(&(currentScreen->keyboard.currentKeyset[i]));
-		}
-	} else {
-		for (i = 0; i < ALPHA_SIZE; i++) {
-			drawKey(&(currentScreen->keyboard.currentKeyset[i]));
-		}
-	}
-
-}
+#include "WriteCaption.h"
+#include "Draw.h"
+#include "BuildFactory.h"
+#include "Colours.h"
+#include "ExecutePage.h"
+#include "GPS.h"
 
 /*
  *
@@ -312,10 +38,9 @@ void updateTime() {
 		return;
 	}
 	while (GetData() != '$') {
-		//printf("Waiting for start .. \n");
+
 	}
 	while ((c = GetData()) != '*') {
-		//printf("%c\n", c);
 		*ptr++ = c;
 	}
 	*ptr = '\0';
@@ -413,20 +138,11 @@ void updateCoordNoPrint() {
 		char lat[12];
 		char longitude[13];
 
-		printCoordinates(17, 29, buff, lat, longitude, NULL, NULL);
+		printCoordinates(17, 29, buff, lat, longitude);
 
 	}
 }
 
-/*******************************************************************************
- ** Draw Menus
- *******************************************************************************/
-void drawMenu() {
-
-	globalCurrentPage = buildMenu();
-	drawPage(globalCurrentPage);
-
-}
 /*
  * Name: validpress
  * Purpose: Checks the button of the corresponding page and make sure the press is within the bound of the buttons

@@ -3,27 +3,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include "Structures.h"
+#include "Colours.h"
+#include "SD_CARD.h"
 
 #define pi 3.14159265358979323846
-
-#ifndef NULL
-#define NULL 0
-#endif
 
 //DE2 Display variables
 char seven_seg_decode_table[] = { 0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D,
 		0x07, 0x7F, 0x67, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 char hex_segments[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 
-/* Set up the Register for 9600 baud , 8 bit data  , no parity  and 1 stop*/
 void Init_GPS(void) {
 
 	GPS_Baud = 0x05;
 	GPS_Control = 0x15;
 
 }
-/* This Function reads the GPS data from the serial port*/
+
 char GetData(void) {
 
 	while ((GPS_Status & 0x01) != 0x01)
@@ -31,7 +29,7 @@ char GetData(void) {
 	return GPS_RxData;
 
 }
-/*This functoin sends commands to the GPS  */
+
 void putcharGPS(int c) {
 
 	while ((GPS_Status & 0x02) != 0x02)
@@ -39,7 +37,7 @@ void putcharGPS(int c) {
 	GPS_TxData = c;
 
 }
-/* This function goes through the command string and send the string charater by character */
+
 void putString(char *s) {
 	char i;
 	while ((i = *s) != 0) {
@@ -49,29 +47,25 @@ void putString(char *s) {
 
 	}
 }
-// this function stops the logging in GPS
+
 void StopLogging(void) {
 	char *buff = "$PMTK185,1";
 	putString(buff);
 
 }
-// This function clears logging for GPS
+
 void ClearLogging(void) {
 	char *buff = "$PMTK184,1";
 	putString(buff);
 }
-// this function starts logging in GPS
+
 void StartLogger(void) {
 	char *buff = "$PMTK186,1";
 	putString(buff);
 
 }
 
-// these two functions take a 4 byte IEEE-754 format float
-// (passed as a 4 byte int representing latitude and longitude values)
-// in big endian format and converts it to an ASCII decimal string
-// which it returns with decimal point in the string.
-char *FloatToLatitudeConversion(int x) //output format is xx.yyyy
+char *FloatToLatitudeConversion(int x)
 {
 	static char buff[100];
 	float *ptr = (float *) (&x); // cast int to float
@@ -79,7 +73,7 @@ char *FloatToLatitudeConversion(int x) //output format is xx.yyyy
 	sprintf(buff, "%2.4f", f); // write in string to an array
 	return buff;
 }
-char *FloatToLongitudeConversion(int x) // output format is (-)xxx.yyyy
+char *FloatToLongitudeConversion(int x)
 {
 	static char buff[100];
 	float *ptr = (float *) (&x);
@@ -88,11 +82,6 @@ char *FloatToLongitudeConversion(int x) // output format is (-)xxx.yyyy
 	return buff;
 }
 
-// takes a 4 byte float in string form (8 chars) and converts to 4 byte form
-// (still stored in an int but in float form)
-// and swaps the bytes order the reason for this is the GPS outputs the
-// longitude and latitude LOG data in 4 byte float form but as little endian
-// NIOS however uses big endian
 int swapEndian(char *s) {
 	register int val;
 	val = strtoul(s, NULL, 16); // convert to 4 byte int form in base 16
@@ -100,7 +89,7 @@ int swapEndian(char *s) {
 	val = (val << 16) | ((val >> 16) & 0xFFFF);
 	return val;
 }
-// This Function search for the GPGGA data format from the GPS and send 1 if the command is in GPGGA format
+
 int checkBuff(char *buff) {
 
 	char *check1 = "GPGGA";
@@ -118,7 +107,6 @@ int checkBuff(char *buff) {
 	return 0;
 }
 
-// Thif Function parse the GPGGA command and print the UTC time on the LCD and the Console
 void printTime(int hour, int minute, int seconds, char buff[256],
 		char* secondBuff, char* minuteBuff, char* timeBuff) {
 	//Defining the pointer for the HEX displays
@@ -188,7 +176,6 @@ void printTime(int hour, int minute, int seconds, char buff[256],
 	alt_up_character_lcd_string(char_lcd_dev, secondBuff);
 }
 
-// This function parse the Lantitude and longitude
 void printCoordinates(int latStart, int longStart, char buff[256],
 		char* latitude, char* longitude) {
 	alt_up_character_lcd_dev * char_lcd_dev;
@@ -267,23 +254,14 @@ void printCoordinates(int latStart, int longStart, char buff[256],
 //It takes in two sets of latitude and longitude coordinates, and returns the distance between the two
 //in the specified unit, M for metres, K for kilometres
 
-/**
- *   This function converts decimal degrees to radians
- */
 double deg2rad(double deg) {
 	return (deg * pi / 180);
 }
 
-/**
- * This function converts radians to decimal degrees
- */
 double rad2deg(double rad) {
 	return (rad * 180 / pi);
 }
 
-/**
- * Calculate the distance between two points (latitude and longitude)
- */
 double distance(double lat1, double lon1, double lat2, double lon2, char unit) {
 	double theta, dist;
 	printf("Lat 1: %.6f, Lon 1 %.6f, Lat 2 %.6f, Lon 2 %.6f \n", lat1, lon1,
@@ -310,10 +288,6 @@ double distance(double lat1, double lon1, double lat2, double lon2, char unit) {
 	return (dist);
 }
 
-/**
- * Checks distance from a predefined latitude and longitude
- * in meters.
- */
 void checkDistance() {
 
 	//home latitude and longitude, west is negative
@@ -368,7 +342,5 @@ void checkDistance() {
 		computePixel(currentLatitude, currentLongitude, &xcur, &ycur);
 
 		DrawCircle(xhome+40, yhome+60, storedDistance, BLACK);
-		//printf("xcur: %d, ycur: %d\n", xcur, ycur);
-		//DrawCircleFill(xcur+40, ycur+40, 5, BLACK);
 	}
 }

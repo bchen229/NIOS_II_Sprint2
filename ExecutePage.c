@@ -1,6 +1,10 @@
 #include "Structures.h"
 #include "Colours.h"
+#include "ExecutePage.h"
+#include "BuildFactory.h"
 #include "Hardware.h"
+#include "Cipher.h"
+#include "SD_CARD.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -159,7 +163,6 @@ void executeLoggingSettings(int choice, int *inputBoxPressed,
 	}
 }
 
-//executes map presses
 void executeMapPress(Button theButton, int choice) {
 
 	if (choice == 1 || choice == 2 || choice == 3) {
@@ -774,4 +777,42 @@ int displayMenu(int *keyPressed, int *inputBoxPressed, int *buttonPressed,
 		}
 	}
 	return choice;
+}
+
+void decrementBuffer(Page *currentScreen) {
+	int len = strlen(currentScreen->keyboard.buffer);
+
+	if (len > 0) {
+		currentScreen->keyboard.buffer[len - 1] = '\0';
+		currentScreen->keyboard.bufCount--;
+	}
+}
+
+void clearBuffer(Page *currentScreen) {
+	memset(currentScreen->keyboard.buffer, 0,
+			sizeof(currentScreen->keyboard.buffer));
+}
+
+void updateBuffer(Key k, Page *currentScreen) {
+
+	char input = k.writeChar;
+	char *buffer = currentScreen->keyboard.buffer;
+
+	Object *inputBox = &(currentScreen->objects[0]);
+	currentScreen->keyboard.bufCount++;
+	//Check if the buffer is empty
+	if (currentScreen->keyboard.bufCount == 1) {
+		strcpy(buffer, "\0");
+		strncat(buffer, &input, 1);
+	} else {
+		strncat(buffer, &input, 1);
+	}
+	//Check the buffer and draws the buffer to the box
+	//Maximum input characters is 55
+	if (currentScreen->keyboard.bufCount < 55) {
+		buildObject(400, 200, BUTTON_WIDTH * 4, BUTTON_HEIGHT * 2, BLACK, WHITE,
+				BLACK, buffer, inputBox, strlen(buffer));
+		drawObject(inputBox);
+		writeCaptionObjectLarge(inputBox, BLACK, WHITE);
+	}
 }
