@@ -1,21 +1,17 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 #include "sys/alt_alarm.h"
 #include "Structures.h"
 #include "sys/alt_timestamp.h"
 #include "Hardware.h"
+#include "TouchScreen.h"
+#include "SD_CARD.h"
+#include "Colours.h"
+#include "GPS.h"
+#include "BuildFactory.h"
+#include "WriteCaption.h"
 
-#define Touch_Control (*(volatile unsigned char *)(0x84000230))
-#define Touch_Status (*(volatile unsigned char *)(0x84000230))
-#define Touch_Transmit (*(volatile unsigned char *)(0x84000232))
-#define Touch_Recieve (*(volatile unsigned char *)(0x84000232))
-#define Touch_Baud (*(volatile unsigned char *)(0x84000234))
-
-#define ALARM_INTERVAL 2 //seconds
-
-/**
- * Initialise touch screen controller.
- */
 void Init_Touch(void) {
 	// Program 6850 and baud rate generator to communicate with touchscreen
 	// send touchscreen controller an "enable touch" command
@@ -29,21 +25,13 @@ void Init_Touch(void) {
 	usleep(4000);
 }
 
-/**
- * Test if screen touched.
- */
 int ScreenTouched(void) {
 	// return TRUE if any data received from 6850 connected to touchscreen
 	// or FALSE otherwise
 	return (Touch_Recieve == 0x80);
 }
 
-/**
- * Wait for screen to be touched.
- */
 void WaitForTouch() {
-	int count = 0;
-	int i;
 	alt_timestamp_start();
 
 	while (!ScreenTouched()) {
@@ -53,9 +41,6 @@ void WaitForTouch() {
 	}
 }
 
-/**
- * This function waits for a touch screen press event and returns X,Y coord.
- */
 void GetPress(Point *p1) {
 	int buf[4];
 	int i;
@@ -75,9 +60,6 @@ void GetPress(Point *p1) {
 	p1->y = (p1->y - yOffset) * 479 / (4095 - yOffset);
 }
 
-/**
- * This function waits for a touch screen release event and returns X,Y coord.
- */
 void GetRelease(Point *p1) {
 	int buf[4];
 	int i;
@@ -97,9 +79,6 @@ void GetRelease(Point *p1) {
 	p1->y = (p1->y - yOffset) * 479 / (4095 - yOffset);
 }
 
-/**
- * Writes input 'c' into the Touch_Transmit register.
- */
 int putcharTouch(int c) {
 // poll Tx bit in 6850 status register. Wait for it to become '1'
 // write 'c' to the 6850 TxData register to output the character
@@ -109,9 +88,6 @@ int putcharTouch(int c) {
 	return Touch_Transmit; // return c
 }
 
-/**
- * Check Touch_Recieve to see if touch is valid.
- */
 int getcharTouch(void) {
 	int rx;
 	// poll Rx bit in 6850 status register. Wait for it to become '1'
@@ -122,10 +98,108 @@ int getcharTouch(void) {
 	return rx;
 }
 
-/**
- * Interrupt. Updates the time, coordinates and resets
- * the DE2 LEDs.
- */
+void updateTime() {
+	Object *timeObject = &(home->objects[2]);
+	char c;
+	char *ptr;
+	char buff[256];
+	ptr = buff;
+	if (globalCurrentPage != home) {
+		return;
+	}
+	while (GetData() != '$') {
+
+	}
+	while ((c = GetData()) != '*') {
+		*ptr++ = c;
+	}
+	*ptr = '\0';
+	if (checkBuff(buff) == 1) {
+
+		char minuteBuff[10];
+		char timeBuff[10];
+		char concatTime[8];
+
+		// grab the time values concatenate them
+		printTime(6, 8, 10, buff, "", minuteBuff, timeBuff);
+		strcpy(concatTime, timeBuff);
+		strcat(concatTime, minuteBuff);
+		concatTime[strlen(concatTime) - 1] = '\0';
+		printf("%s\n", concatTime);
+
+		// draw the time onto the screen
+		strcpy(timeObject->objectText, concatTime);
+		drawObject(timeObject);
+		printf("%s ", timeObject->objectText);
+		writeCaptionObject(timeObject, BLACK, PINK);
+	}
+}
+
+void updateCoord() {
+
+	Object *gpsLat = &(self->objects[5]);
+	Object *gpsLong = &(self->objects[6]);
+	char c;
+	char *ptr;
+	char buff[256];
+	ptr = buff;
+	if (globalCurrentPage != self) {
+		return;
+	}
+	//Wait for the valid data
+	while (GetData() != '$') {
+
+	}
+	//save the date
+	while ((c = GetData()) != '*') {
+
+		*ptr++ = c;
+	}
+	*ptr = '\0';
+
+	if (checkBuff(buff) == 1) {
+
+		char lat[12];
+		char longitude[13];
+
+		printCoordinates(17, 29, buff, lat, longitude);
+
+		//Draw Lat on to the object in the self page
+		strcpy(gpsLat->objectText, lat);
+		drawObject(gpsLat);
+		writeCaptionObject(gpsLat, BLACK, PINK);
+		//Draw Long
+		strcpy(gpsLong->objectText, longitude);
+		drawObject(gpsLong);
+		writeCaptionObject(gpsLong, BLACK, PINK);
+	}
+}
+
+void updateCoordNoPrint() {
+
+	char c;
+	char *ptr;
+	char buff[256];
+	ptr = buff;
+	//wait for valid data
+	while (GetData() != '$') {
+
+	}
+	while ((c = GetData()) != '*') {
+
+		*ptr++ = c;
+	}
+	*ptr = '\0';
+	if (checkBuff(buff) == 1) {
+
+		char lat[12];
+		char longitude[13];
+
+		printCoordinates(17, 29, buff, lat, longitude);
+
+	}
+}
+
 void timerISR() {
 
 	updateTime();

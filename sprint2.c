@@ -6,142 +6,15 @@
  *			 to remind them where they are going and where they are by integrating GPS and SD card and a touch screen.
  *
  */
-#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include "altera_up_avalon_character_lcd.h"
+#include <unistd.h>
 #include "Structures.h"
 #include "Hardware.h"
-#include "WriteCaption.h"
-#include "Draw.h"
-#include "BuildFactory.h"
-#include "Colours.h"
 #include "ExecutePage.h"
+#include "TouchScreen.h"
 #include "GPS.h"
-
-/*
- *
- * Name: updateTime
- * Description: This function checks the data from the gps and print out the time
- * Parameters: void
- *
- */
-void updateTime() {
-	Object *timeObject = &(home->objects[2]);
-	char c;
-	char *ptr;
-	char buff[256];
-	ptr = buff;
-	if (globalCurrentPage != home) {
-		return;
-	}
-	while (GetData() != '$') {
-
-	}
-	while ((c = GetData()) != '*') {
-		*ptr++ = c;
-	}
-	*ptr = '\0';
-	if (checkBuff(buff) == 1) {
-
-		char minuteBuff[10];
-		char timeBuff[10];
-		char concatTime[8];
-
-		// grab the time values concatenate them
-		printTime(6, 8, 10, buff, "", minuteBuff, timeBuff);
-		strcpy(concatTime, timeBuff);
-		strcat(concatTime, minuteBuff);
-		concatTime[strlen(concatTime) - 1] = '\0';
-		printf("%s\n", concatTime);
-
-		// draw the time onto the screen
-		strcpy(timeObject->objectText, concatTime);
-		drawObject(timeObject);
-		printf("%s ", timeObject->objectText);
-		writeCaptionObject(timeObject, BLACK, PINK);
-	}
-}
-
-/*
- *
- * Name: updateCoord
- * Description: This function checks the data from the gps and print out the coordinates recieved from the GPS
- * Parameters: void
- *
- */
-void updateCoord() {
-
-	Object *gpsLat = &(self->objects[5]);
-	Object *gpsLong = &(self->objects[6]);
-	char c;
-	char *ptr;
-	char buff[256];
-	ptr = buff;
-	if (globalCurrentPage != self) {
-		return;
-	}
-	//Wait for the valid data
-	while (GetData() != '$') {
-
-	}
-	//save the date
-	while ((c = GetData()) != '*') {
-
-		*ptr++ = c;
-	}
-	*ptr = '\0';
-
-	if (checkBuff(buff) == 1) {
-
-		char lat[12];
-		char longitude[13];
-
-		printCoordinates(17, 29, buff, lat, longitude);
-
-		//Draw Lat on to the object in the self page
-		strcpy(gpsLat->objectText, lat);
-		drawObject(gpsLat);
-		writeCaptionObject(gpsLat, BLACK, PINK);
-		//Draw Long
-		strcpy(gpsLong->objectText, longitude);
-		drawObject(gpsLong);
-		writeCaptionObject(gpsLong, BLACK, PINK);
-	}
-}
-/*
- *
- * Name: updateCoordNoPrint
- * Description: This function checks the data from the gps. Used to get the distance for geofencing
- * Parameters: void
- *
- */
-void updateCoordNoPrint() {
-
-	char c;
-	char *ptr;
-	char buff[256];
-	ptr = buff;
-	//wait for valid data
-	while (GetData() != '$') {
-
-	}
-	while ((c = GetData()) != '*') {
-
-		*ptr++ = c;
-	}
-	*ptr = '\0';
-	if (checkBuff(buff) == 1) {
-
-		char lat[12];
-		char longitude[13];
-
-		printCoordinates(17, 29, buff, lat, longitude);
-
-	}
-}
+#include "Draw.h"
 
 /*
  * Name: validpress
@@ -166,6 +39,7 @@ int validpress(Point release, Page currentPage, int * buttonPressed) {
 	*buttonPressed = -1;
 	return -1;
 }
+
 /*
  * Name: validkeypress
  * Purpose: Checks the keys of the corresponding page and make sure the press is within the bound of the keys
