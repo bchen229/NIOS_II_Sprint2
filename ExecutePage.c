@@ -1,3 +1,6 @@
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "Structures.h"
 #include "Colours.h"
 #include "ExecutePage.h"
@@ -5,9 +8,10 @@
 #include "Hardware.h"
 #include "Cipher.h"
 #include "SD_CARD.h"
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include "Draw.h"
+#include "WriteCaption.h"
+#include "TouchScreen.h"
+#include "InputBox.h"
 
 void executePWSetupPress(int choice, int *inputBoxPressed, int *buttonPressed,
 		int * sdBoxPressed) {
@@ -15,7 +19,7 @@ void executePWSetupPress(int choice, int *inputBoxPressed, int *buttonPressed,
 	if (*sdBoxPressed == 1) {
 
 		if (choice == 0) {
-			char* newPassword[80];
+			char newPassword[80];
 			strcpy(newPassword, globalCurrentPage->inputBoxes[0].inputBuf);
 			// append '$' to signal end of password
 			sprintf(newPassword, "%s%s", newPassword, "$");
@@ -510,12 +514,12 @@ void executeKeyPress(int choice) {
 			int k;
 			k = globalCurrentPage->keyboard.curInputBoxIndex;
 
-			strcpy(&globalCurrentPage->keyboard.caller->inputBoxes[k].inputBuf,
+			strcpy(globalCurrentPage->keyboard.caller->inputBoxes[k].inputBuf,
 					globalCurrentPage->keyboard.buffer);
 			clearBuffer(globalCurrentPage);
 
 			globalCurrentPage = globalCurrentPage->keyboard.caller;
-			updateInputBox(globalCurrentPage->inputBoxes[k]);
+			updateInputBox(&(globalCurrentPage->inputBoxes[k]));
 
 		}
 
@@ -548,12 +552,12 @@ void executeKeyPress(int choice) {
 			int k;
 			k = globalCurrentPage->keyboard.curInputBoxIndex;
 
-			strcpy(&globalCurrentPage->keyboard.caller->inputBoxes[k].inputBuf,
+			strcpy(globalCurrentPage->keyboard.caller->inputBoxes[k].inputBuf,
 					globalCurrentPage->keyboard.buffer);
 			clearBuffer(globalCurrentPage);
 
 			globalCurrentPage = globalCurrentPage->keyboard.caller;
-			updateInputBox(globalCurrentPage->inputBoxes[k]);
+			updateInputBox(&(globalCurrentPage->inputBoxes[k]));
 
 		}
 
@@ -662,7 +666,6 @@ void MainMenu() {
 						//choice 3 = load encrypted
 						if (choice == 3) {
 
-							char* key;
 							//readFromSD(key, KEYFILE, 16);
 							char read[512] = "";
 							InputBox *tempSD = globalCurrentPage->inputBoxes;
@@ -770,8 +773,8 @@ int displayMenu(int *keyPressed, int *inputBoxPressed, int *buttonPressed,
 			choice = checkChoice(p, globalCurrentPage, keyPressed,
 					inputBoxPressed, buttonPressed, sdBoxPressed);
 
-			if (choice != -1 || keyPressed != -1 || buttonPressed != -1
-					|| inputBoxPressed != -1 || sdBoxPressed != -1) {
+			if (choice != -1 || *keyPressed != -1 || *buttonPressed != -1
+					|| *inputBoxPressed != -1 || *sdBoxPressed != -1) {
 				validPress = 1;
 			}
 		}
@@ -815,4 +818,126 @@ void updateBuffer(Key k, Page *currentScreen) {
 		drawObject(inputBox);
 		writeCaptionObjectLarge(inputBox, BLACK, WHITE);
 	}
+}
+
+int validpress(Point release, Page currentPage, int * buttonPressed) {
+
+	int j;
+
+	printf("Press: %d %d \n ", release.x, release.y);
+	//iterate through the buttons of the page
+	for (j = 0; j < currentPage.numButtons; j++) {
+		Button bttn = currentPage.buttons[j];
+		if ((release.x >= bttn.x1) && (release.x <= bttn.x2)) {
+			if ((release.y >= bttn.y1) && (release.y <= bttn.y2)) {
+				*buttonPressed = 1;
+				return j;
+			}
+		}
+	}
+	*buttonPressed = -1;
+	return -1;
+}
+
+int validkeypress(Point release, Page currentPage, int * keyPressed) {
+	int j;
+	//make sure the page has keyboard
+	if (currentPage.hasKeyboard == 1) {
+		int k = NUM_SIZE;
+
+		if (currentPage.keyboard.isNum == 0) {
+			k = ALPHA_SIZE;
+		}
+		//iterate through the keys
+		for (j = 0; j < k; j++) {
+
+			Key *k = &(currentPage.keyboard.currentKeyset[j]);
+			if ((release.x >= k->x1) && (release.x <= k->x2)) {
+				if ((release.y >= k->y1) && (release.y <= k->y2)) {
+					*keyPressed = 1;
+					return j;
+				}
+			}
+		}
+	}
+
+	*keyPressed = -1;
+	return -1;
+}
+
+int validinputboxpress(Point release, Page currentPage, int * inputBoxPressed) {
+	int j;
+	int k = currentPage.numInputBoxes;
+	//iterate through the inputboxes
+	for (j = 0; j < k; j++) {
+		InputBox ib = currentPage.inputBoxes[j];
+		if ((release.x >= ib.x1) && (release.x <= ib.x2)) {
+			if ((release.y >= ib.y1) && (release.y <= ib.y2)) {
+				*inputBoxPressed = 1;
+				return j;
+			}
+		}
+	}
+	*inputBoxPressed = -1;
+	return -1;
+}
+
+int validsdboxpress(Point release, Page currentPage, int * sdBoxPressed) {
+	int j;
+	int k = currentPage.numSDBoxes;
+	//iterates through the SDBoxes
+	for (j = 0; j < k; j++) {
+		SDBox sdb = currentPage.sdBoxes[j];
+		if ((release.x >= sdb.x1) && (release.x <= sdb.x2)) {
+			if ((release.y >= sdb.y1) && (release.y <= sdb.y2)) {
+				*sdBoxPressed = 1;
+				return j;
+			}
+		}
+	}
+	*sdBoxPressed = -1;
+	return -1;
+}
+
+int checkChoice(Point p, Page * globalCurrentPage, int *keyPressed,
+		int *inputBoxPressed, int *buttonPressed, int * sdBoxPressed) {
+	int choice = -1;
+	int check1;
+	int check2;
+
+	int checkButtonPressed = -1;
+	int checkInputBoxPressed = -1;
+	int checkSDBoxPressed = -1;
+
+	if (globalCurrentPage->hasKeyboard) {
+
+		check1 = validkeypress(p, *globalCurrentPage, keyPressed);
+		check2 = validpress(p, *globalCurrentPage, buttonPressed);
+
+		if (*keyPressed == 1) {
+			choice = check1;
+		}
+		if (*buttonPressed == 1) {
+			choice = check2;
+		}
+	} else {
+
+		checkButtonPressed = validpress(p, *globalCurrentPage, buttonPressed);
+		checkInputBoxPressed = validinputboxpress(p, *globalCurrentPage,
+				inputBoxPressed);
+		checkSDBoxPressed = validsdboxpress(p, *globalCurrentPage,
+				sdBoxPressed);
+
+		if (*sdBoxPressed == 1) {
+			choice = checkSDBoxPressed;
+		}
+		if (*buttonPressed == 1) {
+			choice = checkButtonPressed;
+		}
+		if (*inputBoxPressed == 1) {
+			choice = checkInputBoxPressed;
+		}
+	}
+	return choice;
+
 }

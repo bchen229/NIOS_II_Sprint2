@@ -51,4 +51,44 @@ void clearBuffer(Page *currentScreen);
  */
 void updateBuffer(Key k, Page *currentScreen);
 
+/*
+ * Name: validpress
+ * Purpose: Checks the button of the corresponding page and make sure the press is within the bound of the buttons
+ * Parameters: point , page , int
+ */
+int validpress(Point release, Page currentPage, int * buttonPressed);
+
+/*
+ * Name: validkeypress
+ * Purpose: Checks the keys of the corresponding page and make sure the press is within the bound of the keys
+ * Parameters: point , page , int
+ */
+int validkeypress(Point release, Page currentPage, int * keyPressed);
+
+/*
+ * Name: validinputboxpress
+ * Purpose: Checks the inputboxes of the corresponding page and make sure the press is within the bound of the box
+ * Parameters: point , page , int
+ */
+int validinputboxpress(Point release, Page currentPage, int * inputBoxPressed);
+
+/*
+ * Name: validsdboxpress
+ * Purpose: Checks the sdbox of the corresponding page and make sure the press is within the bound of the sdboxes
+ * Parameters: point , page , int
+ */
+int validsdboxpress(Point release, Page currentPage, int * sdBoxPressed);
+
+/**
+ * Name : checkChoice
+ * Purpose:Evaluates which area was pressed and returns the value
+ * 			of the key, inputbox, button, or sdbox pressed.
+ * Parameters: point , page , button , sdbox;
+ *
+ */
+int checkChoice(Point p, Page * globalCurrentPage, int *keyPressed,
+		int *inputBoxPressed, int *buttonPressed, int * sdBoxPressed);
+
+
+
 
